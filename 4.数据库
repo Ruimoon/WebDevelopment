@@ -1,1 +1,153 @@
+<!DOCTYPE html>
+<html>
+<meta charset=gb2312" />
+<script>
+var DB;
+//�������ݿⷽ��
+function initDatabase() {
+    if (!window.openDatabase) {
+        alert('�������֧��Web SQL���ݿ�.');
+    } else {
+        var dbName = 'mydb'; //�������ݿ�����
+        var dbVersion = '1.0'; //�������ݿ�汾
+        var dbDec = 'DEMO Database'; //�������ݿ�˵����Ϣ
+        var dbSize = 100000; //  �������ݿ��С
+        DB = openDatabase(dbName, dbVersion, dbDec, dbSize); //�������ݿ⣬������showResult����
+    }
+}
+//�������ݱ�
+function createTable()
+{
+	DB.transaction(function(tx){
+		tx.executeSql('create table if not exists USERINFO(USERNAME,PASSWORD,EMAIL,HOBBY)');
+	});
+}
+//ע�᷽��
+function register()
+{
+	
+	initDatabase();
+	createTable();
+	var username = document.getElementById("username").value;
+	var password = document.getElementById("password").value;
+	var email = document.getElementById("email").value;
+	var hobby = document.getElementById("hobby").value;
+	DB.transaction(function(tx){
+		tx.executeSql(
+				'select * from USERINFO where USERNAME=?',
+				[username],
+				function(tx,rs){
+					if (rs.rows.length>0) //�û����Ѿ�����
+					{
+						alert("���û����Ѿ����ڣ���ʹ�������û���ע�ᡣ");
+					}
+					else
+					{
+						DB.transaction(function(tx){
+							tx.executeSql( //�����û�ע����Ϣ�������ݿ�
+								'insert into USERINFO(USERNAME,PASSWORD,EMAIL,HOBBY) values(?,?,?,?)',
+								[username,password,email,hobby],
+								function(tx,rs){
+									alert('ע��ɹ�');
+								},
+								function(tx,error){
+									alert('ע��ʧ��');
+								}
+							);
+						});
+					}
+				}
+		);
+	});
+}
+//��¼����
+function login()
+{
+	initDatabase();
+	var username = document.getElementById("login_username").value;
+	var password = document.getElementById("login_password").value;
+	DB.transaction(function(tx){
+		tx.executeSql(
+			'select * from USERINFO where USERNAME=? and PASSWORD=?',
+			[username,password],
+			function(tx,rs){
+				if (rs.rows.length==0) //δ��ѯ��ָ���û�����������û���Ϣ
+				{
+					alert("��¼ʧ��");
+				}
+				else
+				{
+					var msg ='';
+					for(var i=0;i<rs.rows.length;i++)
+					{
+						msg += '���ã�'+rs.rows.item(i).USERNAME 
+							+'\n\n����email�� : ' +rs.rows.item(i).EMAIL
+							+'\n\n���İ����ǣ�'+rs.rows.item(i).HOBBY;
+					}
+					alert(msg);
+				}
+			}
+		);
+	});
+}
 
+</script>
+<body>
+<div>
+	<div style="float:left;border-style:outset;width:300px;height:300px">
+		<center>
+		<h2>ע�����û�</h2>
+		
+		<table>
+			<tr>
+				<td>ѧ��</td>
+				<td><input type="number" id="username" required="true"></td>
+			</tr>
+			<tr>
+				<td>����</td>
+				<td><input type="password" id="password"/></td>
+			</tr>
+			<tr>
+				<td>��������</td>
+				<td><input type="email" id="email"/></td>
+			</tr>
+			<tr>
+				<td>��Ȥ����</td>
+				<td><input type="text" id="hobby"/></td>
+			</tr>
+			<tr>
+				<td colspan="2" align="right">
+					<input type="button" value="ע�����û�" onclick="register()"/>
+				</td>
+			</tr>
+		</table>
+		</form>
+		</center>
+	</div>
+	<div style="float:left;border-style:outset;margin-left:30px;width:300px;height:300px">
+		<center>
+		<h2>ѧ����¼ϵͳ</h2>
+		<form id="logForm">
+		<table>
+			<tr>
+				<td>ѧ��</td>
+				<td><input type="text" id="login_username"/></td>
+			</tr>
+			<tr>
+				<td>����</td>
+				<td><input type="password" id="login_password"/></td>
+			</tr>
+			<tr>
+				<td colspan="2" align="right">
+					<input type="button" value="�û���¼" onclick="login()"/>
+				</td>
+			</tr>
+		</table>
+		</form>
+		</center>
+	</div>
+</div>
+<br>
+
+</body>
+</html>
